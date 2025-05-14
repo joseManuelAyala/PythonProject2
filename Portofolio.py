@@ -24,4 +24,4 @@ def jarque_bera_testStatistic(sample):
 for ticker in simple_returns.columns:
     serie = simple_returns[ticker].dropna()
     jb_value, skewness, kurtosis = jarque_bera_testStatistic(serie)
-    (f"{ticker}: JB_Value = {jb_value:.2f}, skewness = {skewness:.2f}, kurtosis = {kurtosis:.2f}")
+    print(f"{ticker}: JB_Value = {jb_value:.2f}, skewness = {skewness:.2f}, kurtosis = {kurtosis:.2f}")

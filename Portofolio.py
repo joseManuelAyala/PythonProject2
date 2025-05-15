@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 # Minor edit to trigger Git change detection
 
-tickers = ['AAPL', 'LMT', 'ALHC', 'MC.PA', 'PBR']
+tickers = ['AAPL','JNJ','XOM','HD','TSLA']
 
 data = yf.download(tickers, start="2020-01-01", end = "2025-05-14")
 

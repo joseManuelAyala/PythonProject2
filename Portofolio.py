@@ -2,6 +2,8 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 # Minor edit to trigger Git change detection
+# Minor edit to trigger Git change detection
+
 # Nuevos assets en esta clase
 tickers = ['AAPL','JNJ','XOM','HD','TSLA']
 

@@ -19,6 +19,8 @@ num_portfolios = 10000
 weights = np.random.random((num_portfolios, len(tickers)))
 weights /= np.sum(weights, axis=1, keepdims=True)
 
+
+
 print(weights)
 ret = np.dot(weights, mean_return)
 vol = np.array([np.sqrt(np.dot(np.dot(w, Cov), w.T)) for w in weights])

@@ -24,7 +24,7 @@ g = (1 / D) * (X * (Inv_cov_matrix @ ones) - Y * (Inv_cov_matrix @ mu))
 h = (1 / D) * (Z * (Inv_cov_matrix @ mu) - Y * (Inv_cov_matrix @ ones))
 
 # Efficient Frontier
-n = 400
+n = 1000
 mu_min = mu.min() * 0.8
 mu_max = mu.max() * 1.2
 incr = (mu_max - mu_min) / (n - 1)
@@ -36,22 +36,26 @@ sigma_MV = np.zeros((n, 1))
 for i in range(n):
     mu_i = mu_min + i * incr
     w_i = g + h * mu_i
-    # Asegurarse de que los pesos sean positivos y normalizados
     w_i = np.clip(w_i, 0, 1)
     w_i /= np.sum(w_i)
     w_MV[i, :] = w_i.T
     mu_MV[i] = mu.T @ w_i
-    # Corrigiendo el cálculo de sigma
     sigma_value = (w_i.T @ Cov_matrix @ w_i)[0, 0]
     sigma_MV[i] = np.sqrt(sigma_value)
 
 # Plot
+individual_sigma = np.sqrt(np.diag(Cov_matrix))
+individual_mu = mu[:, 0]
+
 plt.figure(figsize=(12, 7))
 plt.plot(sigma_MV, mu_MV, color='blue', label='Minimum Variance Frontier')
-plt.scatter(np.sqrt(np.diag(Cov_matrix)), mu[:, 0], s=50, color='black', label='Individual Assets')
-plt.xlabel('Desviación Estándar (Riesgo)')
-plt.ylabel('Retorno Esperado')
-plt.title("Minimum Variance Frontier (Corregida)")
+for i, ticker in enumerate(tickers):
+    plt.scatter(individual_sigma[i], individual_mu[i], s=50, label=ticker, marker='o', color='black')
+    plt.text(individual_sigma[i], individual_mu[i], ticker, fontsize=9, ha='right', va='bottom')
+
+plt.xlabel('Standard Deviation)')
+plt.ylabel('Expected Return')
+plt.title("Minimum Variance Frontier ")
 plt.legend()
 plt.show()
 

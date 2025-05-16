@@ -3,8 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
 
-
-# Función para el Test de Jarque-Bera
 def jarque_bera_testStatistic(sample):
     n = len(sample)
     mean = np.mean(sample)
@@ -15,30 +13,29 @@ def jarque_bera_testStatistic(sample):
     return jb_value, skewness, kurtosis
 
 
-# Descargar datos de ejemplo
+
 tickers = ['AAPL', 'JNJ', 'XOM', 'HD', 'TSLA']
 data = yf.download(tickers, start="2020-01-01", end="2025-05-15", auto_adjust=False)
 prices = data['Adj Close']
 
-# Calcular los retornos simples
+
 simple_returns = (prices - prices.shift()) / prices.shift()
 simple_returns = simple_returns.dropna()
 
-# Crear histogramas y mostrar resultados de JB
+
 plt.figure(figsize=(15, 10))
 
 for i, ticker in enumerate(simple_returns.columns):
     serie = simple_returns[ticker].dropna()
     jb_value, skewness, kurtosis = jarque_bera_testStatistic(serie)
 
-    # Crear el subplot para cada ticker
+
     plt.subplot(3, 2, i + 1)
     plt.hist(serie, bins=30, color='lightblue', edgecolor='black', density=True)
     plt.title(f"Return Histogram: {ticker}")
     plt.xlabel('Return')
     plt.ylabel('Frequency')
 
-    # Mostrar el resultado del Test de Jarque-Bera
     plt.text(0.05, 0.95, f"JB = {jb_value:.2f}\nSkew = {skewness:.2f}\nKurt = {kurtosis:.2f}",
              transform=plt.gca().transAxes, fontsize=10,
              verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", edgecolor="black", facecolor="lightgray"))

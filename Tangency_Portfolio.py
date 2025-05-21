@@ -43,7 +43,7 @@ opt_result = minimize(negative_sharpe_ratio, w0,
                       bounds=bounds,
                       constraints=constraints)
 
-# Resultado
+# Resultao
 w_opt = opt_result.x
 sharpe_opt = -opt_result.fun  # Le sacamos el signo negativo
 
@@ -113,3 +113,5 @@ if __name__ == "__main__":
     plt.grid(True)
     plt.xlim(0, None)
     plt.show()
+
+#asdasda

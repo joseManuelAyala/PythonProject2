@@ -51,17 +51,65 @@ print("Pesos óptimos:", w_opt)
 print("Sharpe ratio máximo:", sharpe_opt)
 ret_opt = np.dot(w_opt, mu)
 vol_opt = np.sqrt(w_opt.T @ Cov_matrix @ w_opt)
+#Optimal portfolio
+A = 4
+y_star = (ret_opt - rf)/(A*vol_opt**2)
 
-# Replotear todo incluyendo el tangency portfolio
-plt.figure(figsize=(10, 6))
+w_complete =  y_star * w_opt
+w_rf = 1- y_star
+ret_complete = rf + y_star * (ret_opt - rf)
+vol_complete = y_star * vol_opt
 
-# Tangency Portfolio
-plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
-plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
-plt.xlabel('Annual Volatility')
-plt.ylabel('Annual Expected Return')
-plt.title('Efficient Frontier with Tangency Portfolio')
+
+
+# CAPM Analysis
+benchmark = yf.download("^GSPC", start="2020-01-01", end="2025-05-15", auto_adjust=True)
+benchmark_ret = benchmark['Adj Close'].pct_change().dropna()
+portfolio_returns = (ret@w_opt)
+common_index = benchmark_ret.index.intersection(ret.index)
+portfolio_returns = portfolio_returns.loc[common_index]
+benchmark_ret = benchmark_ret.loc[common_index]
+
+import statsmodels.api as sm
+
+X = sm.add_constant(benchmark_ret)
+model = sm.OLS(portfolio_returns, X).fit()
+print(model.summary())
+
+beta = model.params[1]
+alpha = model.params[0]
+
+plt.figure(figsize=(8,5))
+plt.scatter(benchmark_ret, portfolio_returns, alpha=0.5)
+plt.plot(benchmark_ret, model.predict(X), color='red', label='Security Market Line')
+plt.xlabel("Benchmark Return")
+plt.ylabel("Portfolio Return")
+plt.title("CAPM Regression")
 plt.legend()
 plt.grid(True)
-plt.xlim(0, None)
 plt.show()
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+# Replotear todo incluyendo el tangency portfolio
+    plt.figure(figsize=(10, 6))
+#Tangency Portfolio
+    plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
+# Plot del portafolio completo óptimo
+    plt.scatter(vol_complete, ret_complete, color='purple', marker='o', s=150, label='Optimal Complete Portfolio')
+
+    plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
+    plt.xlabel('Annual Volatility')
+    plt.ylabel('Annual Expected Return')
+    plt.title('Efficient Frontier with Tangency Portfolio')
+    plt.legend()
+    plt.grid(True)
+    plt.xlim(0, None)
+    plt.show()

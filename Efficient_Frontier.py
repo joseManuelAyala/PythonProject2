@@ -153,15 +153,6 @@ for i in range(n_portfolios):
 # Convert results to DataFrame for easier analysis
 results_df = pd.DataFrame(results.T, columns=['Return', 'Volatility', 'Sharpe'])
 
-# Calculate the optimal complete portfolio (including risk-free asset)
-A = 4
-y_star = (ret_opt - rf) / (A * vol_opt ** 2)
-
-w_complete = y_star * w_opt
-w_rf = 1 - y_star
-ret_complete = rf + y_star * (ret_opt - rf)
-vol_complete = y_star * vol_opt
-
 # Plot the efficient frontier
 plt.figure(figsize=(10, 6))
 plt.plot(sigma_uncon, mu_uncon, label='Unconstrained Frontier', lw=2)
@@ -170,7 +161,7 @@ scatter = plt.scatter(results_df['Volatility'], results_df['Return'], c=results_
 plt.colorbar(scatter, label='Sharpe Ratio')
 
 # Plot the optimal complete portfolio
-plt.scatter(vol_complete, ret_complete, color='purple', marker='o', s=150, label='Optimal Complete Portfolio')
+#plt.scatter(vol_complete, ret_complete, color='purple', marker='o', s=150, label='Optimal Complete Portfolio')
 
 # Plot the tangency portfolio
 plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
@@ -179,7 +170,7 @@ plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Po
 plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
 plt.xlabel('Annual Volatility')
 plt.ylabel('Annual Expected Return')
-plt.title('Efficient Frontier')
+#plt.title('Efficient Frontier')
 plt.legend()
 plt.grid(True)
 plt.xlim(0, None)

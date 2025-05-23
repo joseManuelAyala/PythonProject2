@@ -171,9 +171,8 @@ def run_capm_rolling(Y, X, window_size=252):
 rolling_capm = run_capm_rolling(rp_excess, X, window_size=252)
 
 # Beta
-import matplotlib.pyplot as plt
 
-fig, ax1 = plt.subplots(figsize=(10, 5))
+fig, zx1 = plt.subplots(figsize=(10, 5))
 
 # Eje izquierdo: coeficiente beta
 ax1.plot(rolling_capm.index, rolling_capm['beta'], color='blue', label='Beta')

@@ -5,8 +5,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # Download data
-tickers = ['AAPL', 'JNJ', 'XOM', 'HD', 'TSLA']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
+tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
+data = yf.download(tickers, start="2019-01-01", end="2025-05-15", auto_adjust=False)
 prices = data['Adj Close']
 
 # Calculate log returns

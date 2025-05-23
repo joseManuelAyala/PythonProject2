@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 
 # Download data
-tickers = ['AAPL', 'JNJ', 'XOM', 'HD', 'TSLA']
+tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
 data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
 prices = data['Adj Close']
 

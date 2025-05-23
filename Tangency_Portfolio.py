@@ -177,36 +177,6 @@ rolling_capm = run_capm_rolling(rp_excess, X, window_size=252)
 
 
 
-
-
-# 1. Rendimiento esperado ya lo tienes como ret_opt
-print("Expected annual return of the optimal portfolio:", round(ret_opt, 4))
-
-# 2. Calcular rendimiento realizado anualizado
-# Asegúrate de usar los mismos datos de portfolio_returns (que ya construiste antes)
-realized_annual_return = (1 + portfolio_returns).prod()**(252/len(portfolio_returns)) - 1
-print("Realized annual return of the optimal portfolio:", round(realized_annual_return, 4))
-
-
-
-# Comparación gráfica: nivel esperado vs acumulado realizado
-expected_growth = (1 + ret_opt) ** (np.arange(len(portfolio_returns)) / 252)
-portfolio_growth = (1 + portfolio_returns).cumprod()
-
-plt.figure(figsize=(10, 5))
-plt.plot(portfolio_growth.index, portfolio_growth, label='Realized Cumulative Return')
-plt.plot(portfolio_growth.index, expected_growth[:len(portfolio_growth)], 'r--', label='Expected Growth Trajectory')
-plt.title("Expected vs. Realized Portfolio Performance")
-plt.xlabel("Date")
-plt.ylabel("Portfolio Value (base=1)")
-plt.legend()
-plt.grid(True)
-plt.show()
-years = (portfolio_returns.index[-1] - portfolio_returns.index[0]).days / 365.25
-final_value = (1 + portfolio_returns).prod()
-cagr = final_value ** (1 / years) - 1
-print(f"CAGR del portafolio: {cagr:.2%}")
-
 # Beta
 
 fig, ax1 = plt.subplots(figsize=(10, 5))

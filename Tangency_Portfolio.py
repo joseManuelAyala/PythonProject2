@@ -3,6 +3,7 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import statsmodels.api as sm
 
 # Define tickers and download data from Yahoo Finance
 tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
@@ -86,7 +87,6 @@ portfolio_returns = portfolio_returns.loc[common_index]
 benchmark_ret = benchmark_ret.loc[common_index]
 
 # Perform regression to calculate alpha and beta using statsmodels
-import statsmodels.api as sm
 
 X = sm.add_constant(benchmark_ret)
 model = sm.OLS(portfolio_returns, X).fit()
@@ -142,9 +142,9 @@ ff["RF"] = ff["RF"]/100
 
 rp_excess = rp - ff["RF"]
 X = ff[["Mkt-RF"]]
-import pandas as pd
-import statsmodels.api as sm
 
+
+# Rolling window
 def run_capm_rolling(Y, X, window_size=252):
     alphas, betas, t_alphas, t_betas = [], [], [], []
     dates = []
@@ -168,11 +168,13 @@ def run_capm_rolling(Y, X, window_size=252):
         't_alpha': t_alphas,
         't_beta': t_betas
     }, index=dates)
+
+
 rolling_capm = run_capm_rolling(rp_excess, X, window_size=252)
 
 # Beta
 
-fig, zx1 = plt.subplots(figsize=(10, 5))
+fig, ax1 = plt.subplots(figsize=(10, 5))
 
 # Eje izquierdo: coeficiente beta
 ax1.plot(rolling_capm.index, rolling_capm['beta'], color='blue', label='Beta')
@@ -222,9 +224,6 @@ plt.figure(figsize=(10, 6))
 
 # Plot the Tangency Portfolio
 plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
-
-# Plot the optimal complete portfolio
-plt.scatter(vol_complete, ret_complete, color='purple', marker='o', s=150, label='Optimal Complete Portfolio')
 
 # Plot the Capital Market Line (CML)
 plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')

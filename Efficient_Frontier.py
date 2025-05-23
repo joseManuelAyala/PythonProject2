@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Download data
 tickers = ['AAPL', 'JNJ', 'XOM', 'HD', 'TSLA']
-data = yf.download(tickers, start="2020-01-01", end="2025-05-15", auto_adjust=False)
+data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
 prices = data['Adj Close']
 
 # Calculate log returns
@@ -48,7 +48,11 @@ bounds = [(0, 1) for _ in range(len(mu))]
 w0 = np.ones(len(mu)) / len(mu)
 
 # Optimization to find the tangency portfolio (maximizing Sharpe ratio)
-opt_result = minimize(negative_sharpe_ratio, w0, args=(mu, Cov_matrix, rf), method='SLSQP', bounds=bounds,
+opt_result = minimize(negative_sharpe_ratio,
+                      w0,
+                      args=(mu, Cov_matrix, rf),
+                      method='SLSQP',
+                      bounds=bounds,
                       constraints=constraints)
 
 # Extract the optimal weights and the maximum Sharpe ratio
@@ -81,7 +85,8 @@ def solve_unconstrained_frontier(mu, Cov_matrix, n_points=100):
             {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},  # Sum of weights must be 1
             {'type': 'eq', 'fun': lambda w: w @ mu - mu_target}  # Expected return must match target
         ]
-        result = minimize(portfolio_variance, x0=np.ones(n) / n, args=(Cov_matrix,), method='SLSQP',
+        result = minimize(portfolio_variance, x0=np.ones(n) / n,
+                          args=(Cov_matrix,), method='SLSQP',
                           constraints=constraints)
         if result.success:
             w = result.x
@@ -105,7 +110,11 @@ def solve_constrained_frontier(mu, Cov_matrix, n_points=100):
             {'type': 'eq', 'fun': lambda w: np.sum(w) - 1},  # Sum of weights must be 1
             {'type': 'eq', 'fun': lambda w: w @ mu - mu_target}  # Expected return must match target
         ]
-        result = minimize(portfolio_variance, x0=np.ones(n) / n, args=(Cov_matrix,), method='SLSQP', bounds=bounds,
+        result = minimize(portfolio_variance,
+                          x0=np.ones(n) / n,
+                          args=(Cov_matrix,),
+                          method='SLSQP',
+                          bounds=bounds,
                           constraints=constraints)
         if result.success:
             w = result.x
@@ -143,15 +152,6 @@ for i in range(n_portfolios):
 
 # Convert results to DataFrame for easier analysis
 results_df = pd.DataFrame(results.T, columns=['Return', 'Volatility', 'Sharpe'])
-
-# Print expected annual returns and volatilities
-print("Annual expected returns:")
-for ticker, r in zip(tickers, mu):
-    print(f"{ticker}: {r:.2%}")
-
-print("\nAnnual volatilities:")
-for ticker, s in zip(tickers, std_dev):
-    print(f"{ticker}: {s:.2%}")
 
 # Calculate the optimal complete portfolio (including risk-free asset)
 A = 4

@@ -2,44 +2,26 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from data_utils import *
 
 # Download data
-tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD','^GSPC']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
-prices = data['Adj Close']
+prices = load_prices(tickers)
 
 # Calculate daily returns
-returns = (prices - prices.shift()) / prices.shift()
-returns = returns.dropna()
+returns = compute_returns(prices)
 
 # Calculate annual returns
-mean_returns = returns.mean() * 252  # Annualized mean returns
-
-# Parameters for CAPM
-ex_returnMarket = '^GSPC'
-risk_free_rate = 0.03  # 3% risk-free rate
+mean_returns = returns.mean() * 252
 
 # Calculate Beta for each Asset
-market_return = returns[ex_returnMarket]
-betas = {}
-for ticker in tickers:
-    if ticker == ex_returnMarket:
-        continue
-    cov = np.cov(returns[ticker], market_return)
-    beta = cov[0, 1] / cov[1, 1]
-    betas[ticker] = beta
+market_return = returns[ex_return_market]
+betas = compute_betas(returns, market_return)
 
 # Expected return of the market
-market_avg_return = mean_returns[ex_returnMarket]  # This works because mean_returns is a pandas Series
+market_avg_return = mean_returns[ex_return_market]
 
 # Calculate expected returns via CAPM
-expected_returns = {}
-for ticker in tickers:
-    if ticker == ex_returnMarket:
-        continue
-    beta = betas[ticker]
-    expected = risk_free_rate + beta * (market_avg_return - risk_free_rate)
-    expected_returns[ticker] = expected
+expected_returns = compute_expected_returns(betas, market_avg_return)
 
 # Plot the Security Market Line (SML)
 plt.figure(figsize=(10, 10))

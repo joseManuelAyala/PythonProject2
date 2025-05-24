@@ -66,13 +66,6 @@ ret_opt = np.dot(w_opt, mean_returns)
 vol_opt = np.sqrt(w_opt.T @ cov_matrix @ w_opt)
 
 # Calculate the optimal complete portfolio (including risk-free asset)
-A = 4
-y_star = (ret_opt - rf) / (A * vol_opt ** 2)
-
-w_complete = y_star * w_opt
-w_rf = 1 - y_star
-ret_complete = rf + y_star * (ret_opt - rf)
-vol_complete = y_star * vol_opt
 
 ########## CAPM Analysis (Capital Asset Pricing Model)###############
 benchmark = yf.download("^GSPC", start="2018-01-01", end="2025-05-15", auto_adjust=True)

@@ -1,46 +1,40 @@
+from scipy.ndimage import standard_deviation
 from scipy.optimize import minimize
 import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
+from data_utils import *
 
 # Download data
-tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
-prices = data['Adj Close']
+prices = load_prices(investable_tickers)
 
 # Calculate daily returns
-returns = (prices - prices.shift()) / prices.shift()
-returns = returns.dropna()
+returns = compute_returns(prices)
 
 # Calculate annualized returns and standard deviation
-mean_returns = returns.mean().values * 252  # Annualized mean returns
-std_dev = returns.std().values * np.sqrt(252)  # Annualized standard deviation
+mean_returns = compute_anual_returns(returns)
+std_dev = compute_anual_volatility(returns)
 
 # Calculate correlation and covariance matrices
-correlation_matrix = returns.corr().values
-cov_matrix = np.outer(std_dev, std_dev) * correlation_matrix
-inv_cov_matrix = np.linalg.inv(cov_matrix)
+correlation_matrix = compute_correlation_matrix(returns)
+covariance_matrix = np.outer(std_dev, std_dev) * correlation_matrix
 
 # Number of portfolios to simulate
 n_portfolios = 100000
 results = np.zeros((3, n_portfolios))
 weights_record = []
 
-# Risk-free rate
-rf = 0.02  # Risk-free rate
-
 # Simulate portfolios
 for i in range(n_portfolios):
-    weights = np.random.random(len(tickers))
+    weights = np.random.random(len(investable_tickers))
     weights /= np.sum(weights)  # Normalize weights to sum to 1
     weights_record.append(weights)
 
     # Portfolio return and risk
     port_return = np.dot(weights, mean_returns)
-    port_volatility = np.sqrt(np.dot(weights.T, np.dot(cov_matrix, weights)))
-    sharpe_ratio = (port_return - rf) / port_volatility
+    port_volatility = np.sqrt(np.dot(weights.T, np.dot(covariance_matrix, weights)))
+    sharpe_ratio = (port_return - risk_free_rate) / port_volatility
 
     results[0, i] = port_return
     results[1, i] = port_volatility
@@ -55,6 +49,7 @@ scatter = plt.scatter(results_df['Volatility'], results_df['Return'], c=results_
                       cmap='viridis', alpha=0.5)
 plt.colorbar(scatter, label='Sharpe Ratio')
 plt.xlabel('Volatility (Risk)')
+plt.xlim(0,0.6)
 plt.ylabel('Expected Return')
 plt.title('Portfolio Simulation')
 plt.grid(True)

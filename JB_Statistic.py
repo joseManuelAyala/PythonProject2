@@ -2,31 +2,17 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+from data_utils import jarque_bera_testStatistic, load_prices, compute_returns, investable_tickers
 
-# Jarque-Bera test statistic function
-def jarque_bera_testStatistic(sample):
-    n = len(sample)
-    mean = np.mean(sample)
-    standard_deviation = np.std(sample)
-    skewness = np.mean(((sample - mean) / standard_deviation) ** 3)
-    kurtosis = np.mean(((sample - mean) / standard_deviation) ** 4)
-    jb_value = (n / 6) * (skewness ** 2 + ((kurtosis - 3) ** 2) / 4)
-    return jb_value, skewness, kurtosis
+# Download data
+prices = load_prices(investable_tickers)
 
-# Define tickers and download data from Yahoo Finance
-tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
-prices = data['Adj Close']
-
-# Calculate simple returns
-simple_returns = (prices - prices.shift()) / prices.shift()
-simple_returns = simple_returns.dropna()
+# Calculate daily returns
+simple_returns = compute_returns(prices)
 
 # Set up the plot
 plt.figure(figsize=(15, 10))
-
-# Loop through each ticker and plot the histogram with Jarque-Bera statistics
-for i, ticker in enumerate(simple_returns.columns):
+for i, ticker in enumerate(investable_tickers):
     serie = simple_returns[ticker].dropna()
     jb_value, skewness, kurtosis = jarque_bera_testStatistic(serie)
 

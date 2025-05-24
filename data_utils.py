@@ -2,6 +2,7 @@ import yfinance as yf
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from statsmodels.graphics.tukeyplot import results
 
 # Global parameters
 tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD', '^GSPC']
@@ -12,7 +13,7 @@ risk_free_rate = 0.03
 ex_return_market = '^GSPC'
 
 # Define tickers and download data from Yahoo Finance
-def load_prices():
+def load_prices(tickers):
     data = yf.download(tickers, start=start_date, end=end_date, auto_adjust=False)
     return data['Adj Close'].dropna()
 
@@ -37,7 +38,6 @@ def compute_correlation_matrix(returns):
     correlation_matrix = returns.corr()
     return correlation_matrix
 
-
 # Jarque-Bera test statistic function
 def jarque_bera_testStatistic(sample):
     n = len(sample)
@@ -48,18 +48,10 @@ def jarque_bera_testStatistic(sample):
     jb_value = (n / 6) * (skewness ** 2 + ((kurtosis - 3) ** 2) / 4)
     return jb_value, skewness, kurtosis
 
-# Simulate portfolios
-#def simulate_portfolios(n_portfolios, mean_returns, covariance_matrix ):
-
-
-
 # Calculate Beta for each Asset
-def compute_betas(returns):
-        market_return = returns[ex_return_market]
+def compute_betas(returns, market_return):
         betas = {}
         for ticker in investable_tickers:
-            if ticker == ex_returnMarket:
-                continue
             cov = np.cov(returns[ticker], market_return)
             beta = cov[0, 1] / cov[1, 1]
             betas[ticker] = beta
@@ -67,12 +59,9 @@ def compute_betas(returns):
         return betas
 
 # Calculate expected returns via CAPM
-def compute_expected_returns(betas):
-    market_return = returns[ex_return_market]
+def compute_expected_returns(betas, market_avg_return):
     expected_returns = {}
-    for ticker in tickers:
-        if ticker == market_return:
-            continue
+    for ticker in investable_tickers:
         beta = betas[ticker]
         expected = risk_free_rate + beta * (market_avg_return - risk_free_rate)
         expected_returns[ticker] = expected

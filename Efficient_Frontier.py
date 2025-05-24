@@ -3,40 +3,28 @@ import yfinance as yf
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from data_utils import *
 
 # Download data
-tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
-prices = data['Adj Close']
+prices = load_prices(investable_tickers)
 
 # Calculate log returns
-ret = np.log(prices / prices.shift(1))
-ret = ret.dropna()
+returns = np.log(prices / prices.shift(1))
+returns = returns.dropna()
 
 # Calculate annualized returns and standard deviation
-mu = ret.mean().values * 252  # Annualized mean returns
-std_dev = ret.std().values * np.sqrt(252)  # Annualized standard deviation
+mu = compute_anual_returns(returns)  # Annualized mean returns
+std_dev = compute_anual_volatility(returns)  # Annualized standard deviation
 
 # Calculate the correlation matrix
-correlation_matrix = ret.corr().values
+correlation_matrix = compute_correlation_matrix(returns)
 
 # Covariance matrix (annualized)
-Cov_matrix = ret.cov().values * 252
+Cov_matrix = returns.cov().values * 252
 
 # Inverse of the covariance matrix
 Inv_cov_matrix = np.linalg.inv(Cov_matrix)
 n = len(mu)  # Number of assets
-
-# Risk-free rate (assumed)
-rf = 0.02
-
-
-# Function to calculate the negative Sharpe ratio
-def negative_sharpe_ratio(w, mu, cov_matrix, rf):
-    port_return = np.dot(w, mu)
-    port_volatility = np.sqrt(w.T @ cov_matrix @ w)
-    return - (port_return - rf) / port_volatility
-
 
 # Constraints: sum of the weights = 1 (fully invested portfolio)
 constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
@@ -50,7 +38,7 @@ w0 = np.ones(len(mu)) / len(mu)
 # Optimization to find the tangency portfolio (maximizing Sharpe ratio)
 opt_result = minimize(negative_sharpe_ratio,
                       w0,
-                      args=(mu, Cov_matrix, rf),
+                      args=(mu, Cov_matrix),
                       method='SLSQP',
                       bounds=bounds,
                       constraints=constraints)
@@ -137,14 +125,14 @@ results = np.zeros((3, n_portfolios))
 weights_record = []
 
 for i in range(n_portfolios):
-    weights = np.random.random(len(tickers))
+    weights = np.random.random(len(investable_tickers))
     weights /= np.sum(weights)
     weights_record.append(weights)
 
     # Portfolio return and risk
     port_return = np.dot(weights, mu)
     port_volatility = np.sqrt(np.dot(weights.T, np.dot(Cov_matrix, weights)))
-    sharpe_ratio = (port_return - rf) / port_volatility
+    sharpe_ratio = (port_return - risk_free_rate) / port_volatility
 
     results[0, i] = port_return
     results[1, i] = port_volatility
@@ -167,7 +155,7 @@ plt.colorbar(scatter, label='Sharpe Ratio')
 plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
 
 # Plot the Capital Market Line (CML)
-plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
+plt.plot([0, vol_opt], [risk_free_rate, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
 plt.xlabel('Annual Volatility')
 plt.ylabel('Annual Expected Return')
 #plt.title('Efficient Frontier')

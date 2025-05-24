@@ -45,23 +45,15 @@ opt_result = minimize(negative_sharpe_ratio,
 
 # Extract the optimal weights and the maximum Sharpe ratio
 w_opt = opt_result.x
-sharpe_opt = -opt_result.fun  # Remove the negative sign
-
-# Print optimal weights and Sharpe ratio
-print("Optimal weights:", w_opt)
-print("Maximum Sharpe ratio:", sharpe_opt)
+sharpe_opt = -opt_result.fun
 
 # Calculate the return and volatility of the tangency portfolio
 ret_opt = np.dot(w_opt, mu)
 vol_opt = np.sqrt(w_opt.T @ Cov_matrix @ w_opt)
 
-print(ret_opt, vol_opt, opt_result)
-
-
 # Function to calculate portfolio variance
 def portfolio_variance(weights, cov_matrix):
     return weights.T @ cov_matrix @ weights
-
 
 # Function to solve for the unconstrained efficient frontier
 def solve_unconstrained_frontier(mu, Cov_matrix, n_points=100):
@@ -148,9 +140,6 @@ plt.plot(sigma_con, mu_con, label='Constrained Frontier', lw=2)
 scatter = plt.scatter(results_df['Volatility'], results_df['Return'], c=results_df['Sharpe'], cmap='viridis', alpha=0.5)
 plt.colorbar(scatter, label='Sharpe Ratio')
 
-# Plot the optimal complete portfolio
-#plt.scatter(vol_complete, ret_complete, color='purple', marker='o', s=150, label='Optimal Complete Portfolio')
-
 # Plot the tangency portfolio
 plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
 
@@ -158,9 +147,7 @@ plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Po
 plt.plot([0, vol_opt], [risk_free_rate, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
 plt.xlabel('Annual Volatility')
 plt.ylabel('Annual Expected Return')
-#plt.title('Efficient Frontier')
 plt.legend()
 plt.grid(True)
 plt.xlim(0, None)
 plt.show()
-

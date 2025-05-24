@@ -1,28 +1,25 @@
+from scipy.optimize import minimize
 import yfinance as yf
 import numpy as np
 import pandas as pd
-from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from data_utils import *
 
 # Define tickers and download data from Yahoo Finance
-tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD']
-data = yf.download(tickers, start="2018-01-01", end="2025-05-15", auto_adjust=False)
-prices = data['Adj Close']
+prices = load_prices(investable_tickers)
 
 # Calculate daily returns
-returns = (prices - prices.shift()) / prices.shift()
-returns = returns.dropna()
+returns = compute_returns(prices)
 
 # Calculate annual returns
-mean_returns = returns.mean() * 252  # Annualized mean returns
+mean_returns = compute_anual_returns(returns)
 
 # Calculate the standard deviation (volatility)
-std_dev = returns.std() * np.sqrt(252)  # Annualized standard deviation
+std_dev = compute_anual_volatility(returns)
 
 # Calculate the correlation matrix
-correlation_matrix = returns.corr()
-print(correlation_matrix)
+correlation_matrix = compute_correlation_matrix(returns)
 
 # Calculate the covariance matrix
 cov_matrix = np.outer(std_dev, std_dev) * correlation_matrix
@@ -30,35 +27,27 @@ cov_matrix = np.outer(std_dev, std_dev) * correlation_matrix
 # Inverse of the covariance matrix
 inv_cov_matrix = np.linalg.inv(cov_matrix)
 
-# Risk-free rate (assumed)
-rf = 0.03
-
-
-# Define the negative Sharpe ratio function
-def negative_sharpe_ratio(w, mu, cov_matrix, rf):
-    port_return = np.dot(w, mu)
-    port_volatility = np.sqrt(w.T @ cov_matrix @ w)
-    return - (port_return - rf) / port_volatility
-
-
 # Constraints: sum of weights = 1 (full investment)
 constraints = ({'type': 'eq', 'fun': lambda w: np.sum(w) - 1})
-
-# Optional: no short-selling, i.e., weights should be between 0 and 1
 
 # Initialize with equal weights
 w0 = np.ones(len(mean_returns)) / len(mean_returns)
 
 # Optimize the portfolio using the negative Sharpe ratio
 opt_result = minimize(negative_sharpe_ratio, w0,
-                      args=(mean_returns, cov_matrix, rf),
+                      args=(mean_returns, cov_matrix),
                       method='SLSQP',
                       constraints=constraints)
 
 # Get the optimal weights and the maximum Sharpe ratio
 w_opt = opt_result.x
-sharpe_opt = -opt_result.fun  # Remove the negative sign
+sharpe_opt = -opt_result.fun
 
+# Calculate the return and volatility of the optimal portfolio
+ret_opt = np.dot(w_opt, mean_returns)
+vol_opt = np.sqrt(w_opt.T @ cov_matrix @ w_opt)
+
+# CAPM Analysis (Capital Asset Pricing Model)
 benchmark = yf.download("^GSPC", start="2018-01-01", end="2025-05-15", auto_adjust=True)
 benchmark_ret = benchmark['Close'].pct_change().dropna()
 
@@ -71,10 +60,8 @@ portfolio_returns = portfolio_returns.loc[common_index]
 benchmark_ret = benchmark_ret.loc[common_index]
 
 # Perform regression to calculate alpha and beta using statsmodels
-
 X = sm.add_constant(benchmark_ret)
 model = sm.OLS(portfolio_returns, X).fit()
-print(model.summary())
 
 # Extract beta and alpha from the model
 beta = model.params[1]
@@ -93,8 +80,6 @@ plt.show()
 
 # Robust Regression
 model_rlm = sm.RLM(portfolio_returns, X).fit()
-print(model_rlm.summary())
-
 plt.figure(figsize=(8, 5))
 plt.scatter(benchmark_ret, portfolio_returns, alpha=0.4, label='Datos')
 plt.plot(benchmark_ret, model_rlm.predict(), color='orange', label='CAPM (RLM robusto)')
@@ -107,7 +92,8 @@ plt.show()
 
 #################FF Model##############
 
-ff = pd.read_csv("F-F_Research_Data_Factors_daily.CSV", names=["Date", "Mkt-RF", "SMB", "HML", "RF"], skiprows=1)
+ff = pd.read_csv("F-F_Research_Data_Factors_daily.CSV",
+                 names=["Date", "Mkt-RF", "SMB", "HML", "RF"], skiprows=1)
 ff["Date"] = pd.to_datetime(ff['Date'], format='%Y%m%d')
 ff.set_index('Date', inplace=True)
 ff = ff.loc["2020-01-01":"2025-05-15"]
@@ -153,13 +139,9 @@ def run_capm_rolling(Y, X, window_size=252):
 
 rolling_capm = run_capm_rolling(rp_excess, X, window_size=252)
 
-# 1. Rendimiento esperado ya lo tienes como ret_opt
-print("Expected annual return of the optimal portfolio:", round(ret_opt, 4))
 
 # 2. Calcular rendimiento realizado anualizado
-# Asegúrate de usar los mismos datos de portfolio_returns (que ya construiste antes)
 realized_annual_return = (1 + portfolio_returns).prod() ** (252 / len(portfolio_returns)) - 1
-print("Realized annual return of the optimal portfolio:", round(realized_annual_return, 4))
 expected_growth = (1 + ret_opt) ** (np.arange(len(portfolio_returns)) / 252)
 portfolio_growth = (1 + portfolio_returns).cumprod()
 
@@ -174,7 +156,6 @@ plt.grid(True)
 plt.show()
 
 # Beta
-
 fig, ax1 = plt.subplots(figsize=(10, 5))
 
 # Eje izquierdo: coeficiente beta
@@ -218,21 +199,3 @@ fig.suptitle('Rolling Alpha y su t-Statistic (CAPM)', fontsize=14)
 fig.tight_layout()
 plt.grid(True)
 plt.show()
-
-# Replot everything including the tangency portfolio
-
-plt.figure(figsize=(10, 6))
-
-# Plot the Tangency Portfolio
-plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
-
-# Plot the Capital Market Line (CML)
-plt.plot([0, vol_opt], [rf, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
-plt.xlabel('Annual Volatility')
-plt.ylabel('Annual Expected Return')
-plt.title('Efficient Frontier with Tangency Portfolio')
-plt.legend()
-plt.grid(True)
-plt.xlim(0, None)
-plt.show()
-

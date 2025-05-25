@@ -81,11 +81,12 @@ plt.show()
 # Robust Regression
 model_rlm = sm.RLM(portfolio_returns, X).fit()
 plt.figure(figsize=(8, 5))
-plt.scatter(benchmark_ret, portfolio_returns, alpha=0.4, label='Data')
-plt.plot(benchmark_ret, model_rlm.predict(), color='orange', label='CAPM (RLM robust)')
-plt.title('Robust CAPM (RLM)')
-plt.xlabel('Market Performance ')
-plt.ylabel('Portfolio Performance')
+plt.scatter(benchmark_ret, portfolio_returns, alpha=0.4)
+plt.plot(benchmark_ret, model_rlm.predict(), color='orange')
+plt.title('Robust CAPM  (RLM)')
+plt.xlabel('Market Return ')
+plt.ylabel('Portfolio Return')
+>>>>>>> a12ab693 (hola)
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -96,7 +97,7 @@ ff = pd.read_csv("F-F_Research_Data_Factors_daily.CSV",
                  names=["Date", "Mkt-RF", "SMB", "HML", "RF"], skiprows=1)
 ff["Date"] = pd.to_datetime(ff['Date'], format='%Y%m%d')
 ff.set_index('Date', inplace=True)
-ff = ff.loc["2020-01-01":"2025-05-15"]
+ff = ff.loc["2018-01-01":"2025-05-15"]
 
 common_dates = ff.index.intersection(portfolio_returns.index)
 rp = portfolio_returns.loc[common_dates]

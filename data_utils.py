@@ -7,6 +7,7 @@ from statsmodels.graphics.tukeyplot import results
 # Global parameters
 tickers = ['MSFT', 'DE', 'COST', 'BYDDY', 'AMD', 'GLD', '^GSPC']
 investable_tickers = [t for t in tickers if t != '^GSPC']
+print(investable_tickers)
 start_date = '2018-01-01'
 end_date = '2025-05-15'
 risk_free_rate = 0.03

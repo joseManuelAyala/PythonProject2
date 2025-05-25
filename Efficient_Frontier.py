@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from data_utils import *
+from Simulation_Portfolios import simulation_portfolio
 
 # Download data
 prices = load_prices(investable_tickers)
@@ -14,7 +15,7 @@ returns = returns.dropna()
 
 # Calculate annualized returns and standard deviation
 mu = compute_anual_returns(returns)  # Annualized mean returns
-std_dev = compute_anual_volatility(returns)  # Annualized standard deviation
+
 
 # Calculate the correlation matrix
 correlation_matrix = compute_correlation_matrix(returns)
@@ -22,8 +23,6 @@ correlation_matrix = compute_correlation_matrix(returns)
 # Covariance matrix (annualized)
 Cov_matrix = returns.cov().values * 252
 
-# Inverse of the covariance matrix
-Inv_cov_matrix = np.linalg.inv(Cov_matrix)
 n = len(mu)  # Number of assets
 
 # Constraints: sum of the weights = 1 (fully invested portfolio)
@@ -112,26 +111,11 @@ mu_uncon, sigma_uncon = solve_unconstrained_frontier(mu, Cov_matrix)
 mu_con, sigma_con = solve_constrained_frontier(mu, Cov_matrix)
 
 # Simulate portfolios
-n_portfolios = 100000
-results = np.zeros((3, n_portfolios))
-weights_record = []
 
-for i in range(n_portfolios):
-    weights = np.random.random(len(investable_tickers))
-    weights /= np.sum(weights)
-    weights_record.append(weights)
 
-    # Portfolio return and risk
-    port_return = np.dot(weights, mu)
-    port_volatility = np.sqrt(np.dot(weights.T, np.dot(Cov_matrix, weights)))
-    sharpe_ratio = (port_return - risk_free_rate) / port_volatility
-
-    results[0, i] = port_return
-    results[1, i] = port_volatility
-    results[2, i] = sharpe_ratio
+results_df = simulation_portfolio(mu, Cov_matrix, risk_free_rate=0.03, n_portfolios= 10000)
 
 # Convert results to DataFrame for easier analysis
-results_df = pd.DataFrame(results.T, columns=['Return', 'Volatility', 'Sharpe'])
 
 # Plot the efficient frontier
 plt.figure(figsize=(10, 6))
@@ -143,11 +127,12 @@ plt.colorbar(scatter, label='Sharpe Ratio')
 # Plot the tangency portfolio
 plt.scatter(vol_opt, ret_opt, color='red', marker='*', s=200, label='Tangency Portfolio')
 
-# Plot the Capital Market Line (CML)
+#Plot the Capital Market Line (CML)
 plt.plot([0, vol_opt], [risk_free_rate, ret_opt], color='green', linestyle='--', linewidth=2, label='Capital Market Line')
 plt.xlabel('Annual Volatility')
 plt.ylabel('Annual Expected Return')
 plt.legend()
 plt.grid(True)
-plt.xlim(0, None)
+plt.xlim(0, 0.2)
+plt.ylim(0, 0.25)
 plt.show() ###

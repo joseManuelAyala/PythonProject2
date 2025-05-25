@@ -20,11 +20,6 @@ mu = compute_anual_returns(returns)  # Annualized mean returns
 correlation_matrix = compute_correlation_matrix(returns)
 cov_matrix = returns.cov().values * 252
 
-# Number of portfolios to simulate
-
-
-
-
 # Simulate portfolios
 def simulation_portfolio(mu, cov_matrix, risk_free_rate, n_portfolios):
     weights_record = []

@@ -90,7 +90,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
-#################FF Model##############
+#FF Model
 
 ff = pd.read_csv("F-F_Research_Data_Factors_daily.CSV",
                  names=["Date", "Mkt-RF", "SMB", "HML", "RF"], skiprows=1)
@@ -109,7 +109,6 @@ ff["RF"] = ff["RF"] / 100
 
 rp_excess = rp - ff["RF"]
 X = ff[["Mkt-RF"]]
-
 
 # Rolling window
 def run_capm_rolling(Y, X, window_size=252):
@@ -136,11 +135,9 @@ def run_capm_rolling(Y, X, window_size=252):
         't_beta': t_betas
     }, index=dates)
 
-
 rolling_capm = run_capm_rolling(rp_excess, X, window_size=252)
 
-
-# 2. Calcular rendimiento realizado anualizado
+# Compute realized annual return
 realized_annual_return = (1 + portfolio_returns).prod() ** (252 / len(portfolio_returns)) - 1
 expected_growth = (1 + ret_opt) ** (np.arange(len(portfolio_returns)) / 252)
 portfolio_growth = (1 + portfolio_returns).cumprod()
@@ -158,13 +155,13 @@ plt.show()
 # Beta
 fig, ax1 = plt.subplots(figsize=(10, 5))
 
-# Eje izquierdo: coeficiente beta
+# Left Axis: beta coefficient
 ax1.plot(rolling_capm.index, rolling_capm['beta'], color='blue', label='Beta')
 ax1.set_ylabel('Beta', color='blue')
 ax1.tick_params(axis='y', labelcolor='blue')
 ax1.axhline(0, color='gray', linestyle='--', linewidth=0.8)
 
-# Eje derecho: t-stat de beta
+# Right Axis: t-stat of beta
 ax2 = ax1.twinx()
 ax2.plot(rolling_capm.index, rolling_capm['t_beta'], color='orange', label='t-Beta')
 ax2.set_ylabel('t-Beta', color='orange')
@@ -172,7 +169,7 @@ ax2.tick_params(axis='y', labelcolor='orange')
 ax2.axhline(2, color='red', linestyle='--', linewidth=0.8)
 ax2.axhline(-2, color='red', linestyle='--', linewidth=0.8)
 
-# Título y leyenda
+# Title
 fig.suptitle('Rolling Beta and t-Statistic (CAPM)', fontsize=14)
 fig.tight_layout()
 plt.grid(True)
@@ -180,13 +177,13 @@ plt.show()
 
 fig, ax1 = plt.subplots(figsize=(10, 5))
 
-# Eje izquierdo: Alpha
+# Left Axis: Alpha
 ax1.plot(rolling_capm.index, rolling_capm['alpha'], color='red', label='Alpha')
 ax1.set_ylabel('Alpha', color='red')
 ax1.tick_params(axis='y', labelcolor='red')
 ax1.axhline(0, color='gray', linestyle='--', linewidth=0.8)
 
-# Eje derecho: t-Alpha
+# Right Axis: t-Alpha
 ax2 = ax1.twinx()
 ax2.plot(rolling_capm.index, rolling_capm['t_alpha'], color='purple', label='t-Alpha')
 ax2.set_ylabel('t-Alpha', color='purple')
@@ -194,7 +191,7 @@ ax2.tick_params(axis='y', labelcolor='purple')
 ax2.axhline(2, color='black', linestyle='--', linewidth=0.8)
 ax2.axhline(-2, color='black', linestyle='--', linewidth=0.8)
 
-# Título y ajuste
+# Títle
 fig.suptitle('Rolling Alpha and t-Statistic (CAPM)', fontsize=14)
 fig.tight_layout()
 plt.grid(True)
